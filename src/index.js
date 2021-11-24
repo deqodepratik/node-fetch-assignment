@@ -1,6 +1,7 @@
 import axios from "axios";
+import { Buffer } from "buffer";
 import express from "express";
-import { writeFile } from "fs/promises";
+import { writeFile } from "fs";
 import { get } from "lodash";
 import moment from "moment";
 // import fetch from "node-fetch";
@@ -12,7 +13,7 @@ app.use(express.json());
 // getting the data from the external server
 app.get("/", async (req, res) => {
   try {
-    const date = moment().format();
+    const date = moment().format("YYYY-MM-DD");
 
     const response = await axios.get(
       "http://dummy.restapiexample.com/api/v1/employee/1"
@@ -25,13 +26,20 @@ app.get("/", async (req, res) => {
     const salary = get(data, "data.employee_salary");
     const age = get(data, "data.employee_age");
 
-    const text = `The employee name is ${name} and salary is ${salary} and age is ${age}`;
+    // const text = `The employee name is ${name} and salary is ${salary} and age is ${age}`;
 
-    await writeFile(
-      __dirname + `/output/${date}_employee_${id}.txt`,
-      text,
-      "utf8"
+    const dataText = new Uint8Array(
+      Buffer.from(
+        `The employee name is ${name} and salary is ${salary} and age is ${age}`
+      )
     );
+
+    const fileName = `${date}_employee_${id}.txt`;
+
+    writeFile(fileName, dataText, (err) => {
+      if (err) throw err;
+      // here the file is written successfully
+    });
 
     res.json({
       msg: "File created successfully",
@@ -41,6 +49,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
+app.listen(3300, () => {
   console.log("Server listening");
 });
